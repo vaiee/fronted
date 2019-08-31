@@ -1,0 +1,21 @@
+.login-wrap{
+  height: 530px;
+  .vcode{
+   margin-top: 30px;
+   .getVcode, input{
+    margin-top: 0 !important;
+   } 
+  }
+  .reset{
+    font-size: 14px;
+    text-decoration: none;
+    outline: none;
+    width:70px;
+    font-family:PingFangSC-Regular;
+    font-weight:400;
+    color:rgba(16,16,16,1);
+    line-height:20px;
+    float: right;
+    margin-top: 10px;
+  }
+}

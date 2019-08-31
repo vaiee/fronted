@@ -1,0 +1,200 @@
+import React, { Component } from 'react';
+import QRCode from 'qrcode.react';
+import service from "../../assets/scripts/http";
+import cs from 'classnames'
+import './style.scss';
+import Modal from '../../components/Modal/Index'
+var cookie = require('licia/cookie')
+
+let trade_timer = null;
+let skip_timer = null;
+let icon = require('../../assets/images/icon_success.png');
+export default class Price extends Component {
+  constructor(){
+    super();
+    let username = cookie.get('username');
+    this.state = {
+      username: username,
+      trade_no: '',
+      payee: '',
+      hadPay: false,
+      type: '',           // 选择要充值的
+      prices: [
+        {type:'monthly',duratopn: '1.20',totalPrice: '36.00',title:'包月'},
+        {type:'season',duratopn: '0.99',totalPrice: '89.00', title:'包季'},
+        {type:'yearly',duratopn: '0.79',totalPrice: '289.00',title:'包年'}
+      ],
+      pay_type: 'weixin',
+      total: '',
+      url: '',
+      trade_no: '',
+      skip_time: 5,
+      showWxPay: false,      //展示微信支付
+    }
+    this.handlerClose = this.handlerClose.bind(this);
+  }
+
+  handlerChangeType(orderType){
+    console.log(orderType);
+    let {type} = this.state;
+    if(orderType == type) return false;
+    this.setState({type: orderType});
+  }
+
+  handlerChangePay(type){
+    this.setState({pay_type: type})
+  }
+
+  // 立即支付
+  handlerPay(){
+    let {type} = this.state;
+    let jwt = cookie.get('json-web-token');
+    service.defaults.headers.common['Json-Web-Token'] = jwt;
+    service.post(`https://defray.vaiee.com/wechat/unified.do?goods=${type}`).then(res =>{
+      if(res.status == 200){
+        cookie.set('json-web-token', res.headers['json-web-token'])
+      }  
+      if(res.status == 200 &&res.data.code == 200){
+          this.setState({url: res.data.data.qr_url, showWxPay: true, trade_no: res.data.data.trade_no, payee: res.data.data.payee});
+          this.handlerPolling(1800)
+        }
+    }, error =>{
+      console.log(error);
+      alert("请先登录,然后再进行充值");
+      window.location.href ='/';
+    })
+  }
+
+  handlerPolling(time){
+    if(time < 0 ) return false;
+    let {trade_no, skip_time} = this.state;
+    trade_timer = setTimeout(()=>{
+      service.post(`https://defray.vaiee.com/defray/status.do?trade_no=${trade_no}`).then((res)=>{
+      if(res.status == 200){
+        cookie.set('json-web-token', res.headers['json-web-token'])
+      }
+        if(res.status == 200 &&res.data.data.status == 1){
+          clearInterval(trade_timer);
+          time = 0;
+          this.setState({
+            showWxPay: false,
+            hadPay: true
+          })
+          skip_timer = setInterval(()=>{
+            this.setState({
+              skip_time: skip_time--,
+            })
+            console.log(skip_time, 'xxxxxxxxxxxx');
+            if(skip_time==0){  
+              clearInterval(skip_timer);
+              window.location.href = '/#/';
+            }  
+          },1000); 
+        }
+      });
+      this.handlerPolling(time--)
+    }, 2000)
+  }
+
+  handlerClose(){
+    this.setState({ showWxPay: false});
+    clearInterval(skip_timer);
+  }
+
+  componentDidMount(){
+    let type = this.props.match.params.type;
+    if(['monthly', 'season', 'yearly'].includes(type)) {
+      this.setState({type});
+    }else {
+      console.log('跳转')
+    }
+  }
+  handlerSkip(){
+    window.location.href = '/';
+    clearInterval(skip_timer);
+  }
+  render() {
+    let {username, prices, type, pay_type, url, showWxPay, trade_no, payee, hadPay, skip_time} = this.state;
+    let pay_count = 0;
+    pay_count = prices.filter(item =>{
+      return  item.type == type;
+    })
+    pay_count = pay_count.length > 0 ? pay_count[0]['totalPrice'] : 0
+
+    return (
+      <div>
+      {
+        !hadPay ?
+        <div className="pay_wrap">
+          <div className=" line">
+            <div className="left">充值账号</div>
+            <div className="right">
+              {username ? <span className="username">{username}</span>: <a className="login" href="/#/login">请登录</a>}
+            </div>
+          </div>
+          <div className="line">
+            <div className="left">套餐选择</div>
+            <div className="right">
+              <ul>
+                {
+                  prices.map((item,index) =>{
+                    return(
+                      <li key={item.type} className={cs({active: type == item.type})} onClick={()=>{this.handlerChangeType(item.type)}}>
+                        <div className="type">{item.title}</div>
+                        <div className="price"><span className="big">{item.duratopn}</span>元/天</div>
+                        <div className="totalPrice">总价{item.totalPrice}元</div>
+                    </li>
+                    )
+                  })
+                }
+              </ul>
+            </div>
+          </div>
+          <div className="line">
+            <div className="left">支付方式</div>
+            <div className="right">
+              <div className={cs({'pay-type': true, 'weixin': true,active: pay_type == 'weixin'})} onClick={()=>{this.handlerChangePay('weixin')}}></div>
+              <div className={cs({'pay-type': true, 'zhifubao': true,active: pay_type == 'zhifubao'})} onClick={()=>{this.handlerChangePay('zhifubao')}}></div>
+            </div>
+          </div>
+          <div className="line">
+            <div className="left">支付金额:</div>
+            <div className="right">
+              <p className="pay-count"><span className="big">{pay_count}</span>元</p>
+            </div>
+          </div>
+          <div className="line">
+            <div className="left"></div>
+            <div className="right">
+              <div className="button" onClick={()=>{this.handlerPay()}}>立即充值</div>
+            </div>
+          </div>
+          <Modal show={showWxPay} handlerClose={this.handlerClose}>
+            <div className="pay-content">
+              <div className="close"></div>
+              <p>微信扫一扫付款（元）</p>
+              <p className="order-price">{pay_count}</p>
+              <div className="qrCode">
+                <QRCode value={url} size={120} />
+                <p>打开微信扫一扫</p>
+              </div>
+             <div className="info">
+              <p><span className="title">支付订单号：</span><span>{trade_no}</span></p>
+              <p><span className="title">订单账号：</span><span>{username}</span></p>
+              <p><span className="title">收款方：</span><span>{payee}</span></p>
+             </div>
+            </div>
+          </Modal>
+        </div>
+      :
+        <div className="hadPay-wrap">
+          <div className="title">支付成功</div>
+          <img src={icon} className="icon" /> 
+          <div className="endTime">页面将在 {skip_time} 秒后自动跳转</div>
+          <div className="pay-btn" onClick={() => { this.handlerSkip(); }}>立即跳转</div>
+        </div>
+      }
+      </div>
+    )
+  }
+}

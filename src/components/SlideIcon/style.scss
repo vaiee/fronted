@@ -1,0 +1,48 @@
+.slideIcon{
+  position: fixed;
+  right: 0;
+  top: 50%;
+  margin-top: -105px;
+  width: 50px;
+  height: 100px;
+  background: #fff;
+  border-radius: 4px;
+  >div{
+    position: relative;
+    width: 50px;
+    height: 50px;
+    &.qq{
+      background:#0198F9 url('./images/QQ.png') center no-repeat;
+      background-size: 40px;
+      border-radius: 4px 4px 0 0 ;
+      cursor: pointer;
+      img{
+        top: -70px;
+      }
+    }
+    &.wechat{
+      background: url('./images/wechat.png') center no-repeat;
+      background-size: 40px;
+      cursor: pointer;
+      img{
+        top: 0px;
+      }
+    }
+    img{
+      position: absolute;
+      width: 0px;
+      height: 120px;
+      opacity: 0;
+      right: -100px;
+      background: #0198F9;
+      transition: all 0.4s;
+    }
+    &:hover{
+      img{
+        right: 80px;
+        width: 120px;
+        opacity: 1;
+      }
+    }
+  }
+}
