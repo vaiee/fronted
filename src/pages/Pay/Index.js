@@ -20,9 +20,9 @@ export default class Price extends Component {
       hadPay: false,
       type: '',           // 选择要充值的
       prices: [
-        {type:'monthly',duratopn: '1.20',totalPrice: '36.00',title:'包月'},
-        {type:'season',duratopn: '0.99',totalPrice: '89.00', title:'包季'},
-        {type:'yearly',duratopn: '0.79',totalPrice: '289.00',title:'包年'}
+        {type:'monthly',duratopn: '0.93',totalPrice: '28.00',title:'包月'},
+        {type:'season',duratopn: '0.77',totalPrice: '69.00', title:'包季'},
+        {type:'yearly',duratopn: '0.60',totalPrice: '216.00',title:'包年'}
       ],
       pay_type: 'weixin',
       total: '',
