@@ -152,7 +152,7 @@ export default class Login extends Component {
       encrypt.setPublicKey(content);
       let cipher = base64url.fromBase64(encrypt.encrypt(password));
       cipher = cipher + '===='.substr(0, 4 - cipher.length % 4)
-      service.post('account/signin.do', { username, password: cipher, client: 'web',captcha}).then((res) => {
+      service.post('account/signin.do?chan=web', { username, password: cipher, client: 'web',captcha}).then((res) => {
         if(res.status == 200){
           cookie.set('json-web-token', res.headers['json-web-token'])
         }
