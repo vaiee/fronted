@@ -97,7 +97,7 @@ export default class Login extends Component {
       this.setState({captcha_err: '验证码格式错误'})
       return false;
     }
-    service.post('account/shortcut.do?chan=web&dev=' + navigator.userAgent, { username, captcha, client: 'web' }).then((res) => {
+    service.post('account/shortcut.do?chan=web&dev=' + encodeURIComponent(navigator.userAgent), { username, captcha, client: 'web' }).then((res) => {
       var data = res.data && res.data.data ;
       if(res.status == 200){
         cookie.set('json-web-token', res.headers['json-web-token'])
@@ -152,7 +152,7 @@ export default class Login extends Component {
       encrypt.setPublicKey(content);
       let cipher = base64url.fromBase64(encrypt.encrypt(password));
       cipher = cipher + '===='.substr(0, 4 - cipher.length % 4)
-      service.post('account/signin.do?chan=web&dev=' + navigator.userAgent, { username, password: cipher, client: 'web',captcha}).then((res) => {
+      service.post('account/signin.do?chan=web&dev=' + encodeURIComponent(navigator.userAgent), { username, password: cipher, client: 'web',captcha}).then((res) => {
         if(res.status == 200){
           cookie.set('json-web-token', res.headers['json-web-token'])
         }
