@@ -22,7 +22,7 @@ export default class Home extends Component {
                 超低延迟
               </p>
               <p>一键加速，全球畅玩</p>
-              <a href="http://download.vaiee.com/package/20190923/v1.1.4.exe">立即下载体验</a>
+              <a href="http://download.vaiee.com/package/20190927/v1.1.5.exe">立即下载体验</a>
             </div>
             <div className="img">
                 <img src={img_home}/>
